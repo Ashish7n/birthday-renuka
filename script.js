@@ -1,74 +1,97 @@
-
-        // Generate random math question
-        let correctAnswer;
-        function generateMathQuestion() {
-            const num1 = Math.floor(Math.random() * 9) + 1;
-            const num2 = Math.floor(Math.random() * 9) + 1;
-            const operation = Math.random() > 0.5 ? '+' : '-';
-            
-            if (operation === '+') {
-                correctAnswer = num1 + num2;
-                document.getElementById('mathQuestion').textContent = `What is ${num1} + ${num2}?`;
-            } else {
-                if (num1 < num2) {
-                    correctAnswer = num2 - num1;
-                    document.getElementById('mathQuestion').textContent = `What is ${num2} - ${num1}?`;
-                } else {
-                    correctAnswer = num1 - num2;
-                    document.getElementById('mathQuestion').textContent = `What is ${num1} - ${num2}?`;
-                }
-            }
-        }
-
-        generateMathQuestion();
-
         function checkGate() {
-            const dob = document.getElementById('dobInput').value;
-            const answer = parseInt(document.getElementById('mathAnswer').value);
+            const dobInput = document.getElementById('dobInput');
+            const dob = dobInput.value;
             const errorMsg = document.getElementById('errorMsg');
 
             if (!dob) {
-                errorMsg.textContent = 'Please enter your date of birth';
+                errorMsg.textContent = 'Please enter the birthday passcode';
+                playSound('error');
                 return;
             }
 
-            if (isNaN(answer)) {
-                errorMsg.textContent = 'Please answer the math question';
-                return;
-            }
-
-            if (answer !== correctAnswer) {
-                errorMsg.textContent = 'Incorrect answer. Try again!';
-                return;
-            }
-
-            // Success - trigger slide animation
+            playSound('unlock');
+            
             const gatePage = document.getElementById('gatePage');
             gatePage.classList.add('slide-out');
             
-            // Show birthday page with zoom effect after slide starts
+            setTimeout(() => {
+                playSound('vault-open');
+            }, 300);
+            
             setTimeout(() => {
                 document.getElementById('birthdayPage').classList.add('active');
                 initBirthdayPage();
                 createConfetti();
                 createParticles();
                 createSnowflakes();
+                setTimeout(() => playSound('celebration'), 800);
             }, 200);
             
-            // Remove gate page after animation completes
             setTimeout(() => {
                 gatePage.style.display = 'none';
             }, 1500);
         }
 
+        function playSound(type) {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            switch(type) {
+                case 'error':
+                    oscillator.frequency.value = 200;
+                    oscillator.type = 'square';
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.2);
+                    break;
+                    
+                case 'unlock':
+                    oscillator.frequency.value = 800;
+                    oscillator.type = 'sine';
+                    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.3);
+                    break;
+                    
+                case 'vault-open':
+                    oscillator.frequency.value = 150;
+                    oscillator.type = 'sawtooth';
+                    gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.05, audioContext.currentTime + 0.5);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1.2);
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 1.2);
+                    break;
+                    
+                case 'celebration':
+                    [523.25, 587.33, 659.25, 783.99].forEach((freq, index) => {
+                        const osc = audioContext.createOscillator();
+                        const gain = audioContext.createGain();
+                        osc.connect(gain);
+                        gain.connect(audioContext.destination);
+                        osc.frequency.value = freq;
+                        osc.type = 'sine';
+                        gain.gain.setValueAtTime(0.15, audioContext.currentTime + index * 0.1);
+                        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + index * 0.1 + 0.3);
+                        osc.start(audioContext.currentTime + index * 0.1);
+                        osc.stop(audioContext.currentTime + index * 0.1 + 0.3);
+                    });
+                    break;
+            }
+        }
+
         function initBirthdayPage() {
-            // Animate hero title lines
             setTimeout(() => {
                 const lines = document.querySelectorAll('.hero-title .line');
                 lines.forEach(line => line.classList.add('animate'));
             }, 1000);
 
-            // Animate wish items on scroll/load
             setTimeout(() => {
                 const wishItems = document.querySelectorAll('.wish-item');
                 wishItems.forEach((item, index) => {
@@ -99,7 +122,6 @@
                 }, i * 50);
             }
             
-            // Continuously add new confetti
             setInterval(() => {
                 for (let i = 0; i < 2; i++) {
                     const confetti = document.createElement('div');
@@ -132,7 +154,6 @@
             const snowContainer = document.getElementById('snowContainer');
             const snowflakes = ['❄', '❅', '❆'];
             
-            // Create initial snowflakes
             for (let i = 0; i < 40; i++) {
                 setTimeout(() => {
                     const snowflake = document.createElement('div');
@@ -152,7 +173,6 @@
                 }, i * 200);
             }
             
-            // Continuously add new snowflakes
             setInterval(() => {
                 for (let i = 0; i < 2; i++) {
                     const snowflake = document.createElement('div');
